@@ -1,1 +1,438 @@
+#include<Wire.h>
+//serial communicattion
+const int slaveAddress =8 ;
 
+const int slaveAddress1 =9 ;
+//Player 1
+const char* sentences1="Create";
+const char* sentences2="Set up";
+const char* sentences3="Connect";
+const char* sentences4="make all";
+
+////Player 2
+//const char* sentences11="Create a power supply of 5v using The materials provided and no external material shall be used ";
+//const char* sentences21="Set up a circuit to Blink an led for two second once and connect the digital pin of the led to D1 of the game";
+//const char* sentences31="Connect a Light sensor circuit on A0 of the game";
+//const char* sentences41="make all the connections at the same time";
+
+
+int analogpin1=0;//player one A1
+int analogpin2=1;//player one A2
+int SignalLed1=2;  //green P1
+int SignalLed2=3;  //Red P2
+int mark1=0;
+int newmark1;
+//Player 2
+int analogpin3=A2;//player one A1
+int analogpin4=A3;//player one A2
+int SignalLed3=13;//green P2
+int SignalLed4=12;//red p2
+int mark2=0;
+int newmark2;
+const int digit1pin=8;   // D1
+const int digit1pin1 =9;   // D11
+unsigned long digit1Time =0 ;
+unsigned long digit1Time1 =0 ;
+bool digit1 = false;
+bool digit11 = false;
+//enter key
+const int buttonpin = 10;   //enter1
+const int buttonpin1 = 11;  //enter2
+int Enter1;
+int Enter2;
+//start key
+const int buttonpinstart = 7; //done 
+int start;
+// Time count P1
+unsigned long startTime = 0;
+unsigned long endTime = 0;
+unsigned long elapsedTime = 0;
+//time count p2
+unsigned long startTime1 = 0;
+unsigned long endTime1 = 0;
+unsigned long elapsedTime1 = 0;
+
+\
+int latchPin = 5;//RCLK  done
+int dataPin = 4;//SER   done
+int clockPin = 6;//SRCLK   done
+byte motorPattern[]={
+  B00000000, //off   
+  B00000001,   //motor 1
+  B00000010,   //motor 2
+  B00000100,   //motor 3
+  B00001000,   //motor 4
+  B00010000,   //motor 5
+  B00100000,   //motor 6
+  B01000000,   //motor 7
+  B10000000   //motor 8
+};
+
+
+void setup() {
+  // put your setup code here, to run once:
+  Wire.begin();
+  Serial.begin(9600);
+  pinMode(SignalLed2,OUTPUT);//Red led to signal a "Fail"
+  pinMode(SignalLed1,OUTPUT);//Green led to signal a "continue"
+  pinMode(SignalLed3,OUTPUT);//Red led to signal a "Fail"
+  
+    pinMode(SignalLed2,OUTPUT);
+  pinMode(SignalLed4,OUTPUT);//Green led to signal a "continue"
+  pinMode(digit1,INPUT_PULLUP);
+  pinMode(buttonpin,INPUT);
+  pinMode(buttonpin1,INPUT);
+  pinMode(buttonpinstart,INPUT);
+
+}
+
+void loop() {
+  
+  // Level one self standing Blinking Led
+  digitalWrite(buttonpinstart,HIGH);
+  start=digitalRead(buttonpinstart);
+  if(start==!HIGH)
+  {
+    failP11();
+    failP1();
+   successP1();
+   successP11();
+ for(;;)
+ {
+ startTime= millis();
+  startTime1= millis();
+ player1();
+ player2();
+
+}
+}
+}
+void controlTun(byte motornum)
+{
+ 
+  digitalWrite(latchPin,LOW); 
+  shiftOut(dataPin,clockPin,LSBFIRST, motorPattern[motornum]);
+  digitalWrite(latchPin,HIGH);
+  delay(200);
+  return 0;
+}
+
+void player1()
+{
+  
+  sendsentencetoslave(sentences1);
+  delay(1000);
+  digitalWrite(buttonpin,HIGH);
+  Enter1=digitalRead(buttonpin);
+if(Enter1==!HIGH)
+{
+       int sensevalue1=analogRead(analogpin1);
+  //Part one "The power supply"
+  float voltage1=(sensevalue1*5.0)/1023.0;
+  if (voltage1==5.0)
+  {
+   
+    successP1();
+    controlTun(1);
+    controlTun(0);
+    newmark1=mark1+10;
+    endTime = millis();
+    Part2();
+  }
+  else{
+      if (voltage1>5.0 && voltage1<=5.4)
+  {
+     successP1();
+    controlTun(2);
+    controlTun(0);
+    newmark1=mark1+5;
+    Part2();
+     }
+    
+  
+  else{
+        failP1();
+    }
+  }
+}}
+void player2()
+{
+  
+  sendsentencetoslave1(sentences1);
+  
+  digitalWrite(buttonpin1,HIGH);
+  Enter2=digitalRead(buttonpin1);
+  if(Enter2==!HIGH)
+  {
+         int sensevalue1=analogRead(analogpin2);
+  //Part one "The power supply"
+  float voltage1=(sensevalue1*5.0)/1023.0;
+  if (voltage1==5.0)
+  {
+    successP11();
+    controlTun(4);
+    controlTun(0);
+    newmark2=mark2+10;
+    endTime1=millis();
+    Part21();
+  }
+  else
+       if (voltage1>5.0 && voltage1<=5.4)
+  {
+     successP11();
+     controlTun(5);
+    controlTun(0);
+    newmark1=mark1+5;
+    Part21();
+     }
+    
+  
+  else{
+        failP11();
+    }
+  }
+}
+void Part2 ()
+{
+  for(;;){
+    sendsentencetoslave(sentences2);
+    delay(5000);
+    
+  digitalWrite(buttonpin,HIGH);
+    Enter1=digitalRead(buttonpin);
+  if(Enter1==!HIGH)
+  {
+    
+  int digit1state =digitalRead(digit1pin);
+  if (digit1state==LOW && !digit1)
+  {
+    digit1=true;
+    digit1Time = millis();
+  }
+  if (digit1state==HIGH && digit1)
+  digit1=false;
+  unsigned long digit1duration=millis()-digit1Time;
+
+         if(digit1duration>=2000 && digit1duration<3000)
+         {
+            successP1();
+              controlTun(3);
+              controlTun(0);
+           mark1=newmark1+20;
+           Part3();
+         }
+         else {
+          failP1();
+              
+          }
+  
+}
+}}
+void successP1()
+{
+  digitalWrite(SignalLed1,HIGH);
+               delay(2000);
+                digitalWrite(SignalLed1,LOW);
+                 delay(200);
+                digitalWrite(SignalLed1,HIGH);
+              delay(200); 
+             digitalWrite(SignalLed1,LOW);
+           delay(200);
+  
+}
+void failP1()
+{
+         digitalWrite(SignalLed2,HIGH);
+     delay(1000); 
+     digitalWrite(SignalLed2,LOW);
+     delay(200);
+              digitalWrite(SignalLed2,HIGH);
+     delay(1000); 
+     digitalWrite(SignalLed2,LOW);
+     delay(200);
+}
+
+
+ void Part3()
+ {
+    sendsentencetoslave(sentences3);
+    delay(5000);
+    
+  digitalWrite(buttonpin,HIGH);
+    Enter1=digitalRead(buttonpin);
+  //connecting light intensity sensor
+  if(Enter1==!HIGH)
+  {
+     int sensorvalue =analogRead(analogpin2);
+  if(sensorvalue > 500)
+  {
+    successP1();
+    newmark1=mark1+30;
+    final1();
+    
+    }
+    else
+    {
+     failP1(); 
+    }
+   
+    
+ }
+ }
+void final1()
+{
+    sendsentencetoslave(sentences4);
+    delay(5000);
+    
+  digitalWrite(buttonpin,HIGH);
+    Enter1=digitalRead(buttonpin);
+  if(Enter1==!HIGH){
+  int sensevalue1=analogRead(analogpin1);
+  //Part one "The power supply"
+  float voltage1=(sensevalue1*5.0)/1023.0;
+  int sensorvalue =analogRead(analogpin2);
+  int digit1state =digitalRead(digit1pin);
+  if (digit1state==LOW && !digit1)
+  {
+    digit1=true;
+    digit1Time = millis();
+  }
+  if (digit1state==HIGH && digit1)
+  digit1=false;
+  unsigned long digit1duration=millis()-digit1Time;
+   if(digit1duration>=2000 && digit1duration<3000 &&sensorvalue > 500 && voltage1<=5.4 && voltage1>=5.0)
+         {
+          //Display game over
+         }
+
+}}
+void sendsentencetoslave(const char*  sentence)
+{
+  Wire.beginTransmission(4);
+  Wire.write(sentence);
+  Wire.endTransmission();
+}
+void sendsentencetoslave1(const char*  sentence)
+{
+  Wire.beginTransmission(5);
+  Wire.write(sentence);
+  Wire.endTransmission();
+}
+void Part21 ()
+{
+  for(;;)
+  {
+    sendsentencetoslave1(sentences2);
+    delay(5000);
+    
+  digitalWrite(buttonpin1,HIGH);
+    Enter2=digitalRead(buttonpin1);
+  if(Enter2==!HIGH)
+  {
+        
+   int digit1state1 =digitalRead(digit1pin1);
+  if (digit1state1==LOW && !digit11)
+  {
+    digit11=true;
+    digit1Time1 = millis();
+  }
+  if (digit1state1==HIGH && digit11)
+  digit11=false;
+  unsigned long digit1duration1=millis()-digit1Time1;
+
+         if(digit1duration1>=2000 && digit1duration1<3000)
+         {
+            successP11();
+              controlTun(6);
+              controlTun(0);
+           mark2=newmark2+20;
+           Part31();
+         }
+         else {
+          failP11();
+              
+          }
+  
+}
+}}
+void successP11()
+{
+  digitalWrite(SignalLed3,HIGH);
+               delay(200);
+                digitalWrite(SignalLed3,LOW);
+                 delay(200);
+                digitalWrite(SignalLed3,HIGH);
+              delay(200); 
+             digitalWrite(SignalLed3,LOW);
+           delay(200);
+  
+}
+void failP11()
+{
+         digitalWrite(SignalLed4,HIGH);
+     delay(1000); 
+     digitalWrite(SignalLed4,LOW);
+     delay(200);
+        digitalWrite(SignalLed4,HIGH);
+     delay(1000); 
+     digitalWrite(SignalLed4,LOW);
+     delay(200);
+}
+
+
+ void Part31()
+ {
+sendsentencetoslave1(sentences3);
+    delay(5000);
+    
+  digitalWrite(buttonpin1,HIGH);
+    Enter2=digitalRead(buttonpin1);
+    if(Enter2==!HIGH)
+{
+    
+  //connecting light intensity sensor
+  int sensorvalue1 =analogRead(analogpin3);
+  if(sensorvalue1 > 500)
+  {
+    successP11();
+    newmark2=mark2+30;
+    final11();
+    
+    }
+    else
+    {
+     failP11(); 
+    }
+    
+    
+ }
+ }
+void final11()
+{
+ sendsentencetoslave1(sentences4);
+    delay(5000);
+    
+  digitalWrite(buttonpin1,HIGH);
+    Enter2=digitalRead(buttonpin1);
+   if(Enter2=!HIGH)
+{
+   
+  int sensevalue2=analogRead(analogpin2);
+  //Part one "The power supply"
+  float voltage11=(sensevalue2*5.0)/1023.0;
+  int sensorvalue1 =analogRead(analogpin3);
+  int digit1state1 =digitalRead(digit1pin1);
+  if (digit1state1==LOW && !digit11)
+  {
+    digit11=true;
+    digit1Time1 = millis();
+  }
+  if (digit1state1==HIGH && digit11)
+  digit1=false;
+  unsigned long digit1duration1=millis()-digit1Time1;
+   if(digit1duration1>=2000 && digit1duration1<3000 &&sensorvalue1 > 500 && voltage11<=5.4 && voltage11>=5.0)
+         {
+          //Display game over
+         }
+
+}
