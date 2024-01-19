@@ -8,6 +8,7 @@ int Pump1=12;//Pumping motor for the solar water heater
 int Pump2=11;//Pumping motor for the hot water supply of the nest
 int Pump3=10;//Pumping motor for the re supply of used water
 int Pump4=7;//Pumping motor feeds
+int pump5=4;
 int drinker=9;//Control for the water supply to the drinker
 int Tempsensor=A0;//nest temperature sensor
 int LDR=A1;// for the Light sensitivity
@@ -31,6 +32,7 @@ void setup() {
 pinMode(Led1,OUTPUT);
 pinMode(Pump1,OUTPUT);
 pinMode(Pump2,OUTPUT);
+pinMode(Pump4,OUTPUT)
 pinMode(Pump3,OUTPUT);
 pinMode(drinker,OUTPUT);
 Serial.begin(9600);
@@ -48,16 +50,22 @@ void loop() {
   //temperature sensing
 int tempsense=analogRead(Tempsensor);
 float temperature = (((tempsense/1023.0)*5.0)-0.5)*100.0;
-if(temperature<=20)
+if(temperature<=18)
 {
 digitalWrite(Pump2,HIGH);
 delay(700);
-}
+ 
+digitalWrite(Pump2,LOW);
+delay(700);}
 else
 {
-  digitalWrite(Pump2,LOW);
+if(temperature>=24)
+{
+  digitalWrite(Pump4,HIGH);
 delay(700);
-}
+   digitalWrite(Pump4,LOW);
+delay(700);
+}}
  int threshold1 = 400;
 //LDR Light intensity sensing
 int LDRsense=analogRead(LDR);
