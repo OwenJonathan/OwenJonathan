@@ -13,7 +13,7 @@ int drinker=9;//Control for the water supply to the drinker
 int Tempsensor=A0;//nest temperature sensor
 int LDR=A1;// for the Light sensitivity
 int IR1=8;//Sensing the level of feeds;
-const int targetHour = 8;
+const int targetHour = 7;
 // Define server details
 
 const char* serverAddress = "http://example.com"; // Replace with your server URL
