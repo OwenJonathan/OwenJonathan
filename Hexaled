@@ -1,0 +1,181 @@
+/*
+
+-- Hexaled --
+
+This source code of graphical user interface 
+
+has been generated automatically by RemoteXY editor.
+
+To compile this code using RemoteXY library 3.1.10 or later version 
+
+download by link http://remotexy.com/en/library/
+
+To connect using RemoteXY mobile app by link 
+
+http://remotexy.com/en/download/ 
+
+- for ANDROID 4.13.11 or later version;
+
+- for iOS 1.10.3 or later version;
+
+This source code is free software; you can redistribute it and/or
+
+modify it under the terms of the GNU Lesser General Public
+
+License as published by the Free Software Foundation; either
+
+version 2.1 of the License, or (at your option) any later version. 
+
+*/
+
+//////////////////////////////////////////////
+
+// RemoteXY include library //
+
+//////////////////////////////////////////////
+
+// you can enable debug logging to Serial at 115200
+
+//#define REMOTEXY__DEBUGLOG 
+
+// RemoteXY select connection mode and include library 
+
+#define REMOTEXY_MODE__HARDSERIAL
+
+uint8_t select_01; // =0 if select position A, =1 if position B ...
+
+int8_t slider_01; // from 0 to 100
+
+int8_t joystick_01_x; // from -100 to 100
+
+int8_t joystick_01_y; // from -100 to 100
+
+int Strip1; // 
+
+uint8_t rgb_01_r; // =0..255 Red color value
+
+uint8_t rgb_02_g; // =0..255 Green color value
+
+uint8_t rgb_03_b; // =0..255 Blue color value
+
+float accelerometer_01_x;
+
+float accelerometer_01_y;
+
+float accelerometer_01_z;
+
+uint8_t Animation; // =0 if select position A, =1 if position B ...
+
+uint8_t button_01; // =1 if button pressed, else =0
+
+#include <FastLED.h>
+
+#define LED_PIN 6
+
+#define NUM_LEDS 20
+#define LED_TYPE WS2812
+#define COLOR_ORDER GRB
+CRGB leds[NUM_LEDS];
+// RemoteXY connection settings 
+#define REMOTEXY_SERIAL Serial
+#define REMOTEXY_SERIAL_SPEED 9600
+#define REMOTEXY_SERIAL_SSL "Hexaled"
+#define REMOTEXY_ACCESS_PASSWORD "1234"
+#include <RemoteXY.h>
+// RemoteXY GUI configuration 
+#pragma pack(push, 1) 
+uint8_t RemoteXY_CONF[] = // 142 bytes
+{ 255,32,0,12,0,135,0,17,0,0,0,172,1,106,200,1,1,10,0,3,
+72,51,12,32,3,2,26,4,10,48,9,28,16,2,26,5,74,142,30,30,
+0,2,26,31,7,66,29,40,10,37,2,26,2,11,6,18,92,62,62,2,
+26,9,1,169,23,23,0,24,3,38,31,4,32,8,2,26,72,29,164,43,
+43,76,2,26,89,20,0,0,160,65,0,0,127,67,0,0,200,66,135,0,
+0,72,66,0,0,140,66,94,0,0,140,66,0,0,180,66,67,33,13,40,
+10,4,31,26,11,1,42,173,15,15,0,2,31,82,101,115,116,97,114,116,
+32,0 };
+// this structure defines all the variables and events of your control interface 
+struct {
+// input variables
+// output variables
+int8_t Glow; // from 20 to 255
+char Hexaled[11]; // string UTF8 end zero
+// other variable
+uint8_t connect_flag; // =1 if wire connected, else =0
+} RemoteXY; 
+#pragma pack(pop)
+/////////////////////////////////////////////
+// END RemoteXY include //
+/////////////////////////////////////////////
+
+#define PIN_BUTTON_01 4
+
+void setup()
+
+{
+
+RemoteXY_Init (); 
+
+FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+
+pinMode (PIN_BUTTON_01, OUTPUT);
+
+// TODO you setup code
+
+}
+
+void loop()
+
+{
+
+RemoteXY_Handler ();
+
+// TODO you loop code
+
+// use the RemoteXY structure finstead RemoteXY_delay() 
+
+forwardColorWheel(20); // Displayor data transfer
+
+// do not call delay(), use colors of the color wheel from first to last with 
+
+a delay of 20 milliseconds
+
+reverseColorWheel(20);
+
+}
+
+void forwardColorWheel(uint8_t delay_ms) {
+
+for (int i = 0; i < 256; i++) {
+
+for (int j = 0; j < NUM_LEDS; j++) {
+
+leds[j] = CHSV(rgb_01_r, rgb_02_g, rgb_03_b);
+
+}
+
+FastLED.show();
+
+delay(delay_ms);
+
+}
+
+}
+
+void reverseColorWheel(uint8_t delay_ms) {
+
+for (int i = 255; i >= 0; i--) {
+
+for (int j = 0; j < NUM_LEDS; j++) {
+
+leds[j] = CHSV(rgb_01_r, rgb_02_g, rgb_03_b);
+
+}
+
+FastLED.show();
+
+delay(100);
+
+}
+
+}
+
